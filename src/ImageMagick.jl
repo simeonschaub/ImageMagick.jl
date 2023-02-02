@@ -5,7 +5,6 @@ using InteractiveUtils: subtypes
 using ImageCore
 using ImageMagick_jll
 using Base: convert
-using Ghostscript_jll
 
 Color1{T}           = Color{T,1}
 Color2{T,C<:Color1} = TransparentColor{C,T,2}

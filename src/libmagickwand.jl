@@ -269,31 +269,25 @@ function pingimage(wand::MagickWand, filename::AbstractString)
     nothing
 end
 
-function readimage(wand::MagickWand, from)
-    withenv("PATH" => "$(Ghostscript_jll.PATH[]):$(ENV["PATH"])") do
-        _readimage(wand, from)
-    end
-end
-
-function _readimage(wand::MagickWand, filename::AbstractString)
+function readimage(wand::MagickWand, filename::AbstractString)
     status = ccall((:MagickReadImage, libwand), Cint, (Ptr{Cvoid}, Ptr{UInt8}), wand, filename)
     status == 0 && error(wand)
     nothing
 end
 
-function _readimage(wand::MagickWand, stream::IO)
+function readimage(wand::MagickWand, stream::IO)
     status = ccall((:MagickReadImageFile, libwand), Cint, (Ptr{Cvoid}, Ptr{Cvoid}), wand, Libc.FILE(stream).ptr)
     status == 0 && error(wand)
     nothing
 end
 
-function _readimage(wand::MagickWand, stream::Vector{UInt8})
+function readimage(wand::MagickWand, stream::Vector{UInt8})
     status = ccall((:MagickReadImageBlob, libwand), Cint, (Ptr{Cvoid}, Ptr{Cvoid}, Cint), wand, stream, length(stream)*sizeof(eltype(stream)))
     status == 0 && error(wand)
     nothing
 end
 
-_readimage(wand::MagickWand, stream::IOBuffer) = readimage(wand, stream.data)
+readimage(wand::MagickWand, stream::IOBuffer) = readimage(wand, stream.data)
 
 function writeimage(wand::MagickWand, filename::AbstractString)
     status = ccall((:MagickWriteImages, libwand), Cint, (Ptr{Cvoid}, Ptr{UInt8}, Cint), wand, filename, true)
