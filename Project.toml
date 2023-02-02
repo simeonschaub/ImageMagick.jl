@@ -4,12 +4,14 @@ version = "1.2.2"
 
 [deps]
 FileIO = "5789e2e9-d7fb-5bc7-8068-2c6fae9b9549"
+Ghostscript_jll = "61579ee1-b43e-5ca0-a5da-69d92c66a64b"
 ImageCore = "a09fc81d-aa75-5fe9-8630-4744c3626534"
 ImageMagick_jll = "c73af94c-d91f-53ed-93a7-00f77d67a9d7"
 InteractiveUtils = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
 
 [compat]
 FileIO = "1"
+Ghostscript_jll = "= 9.55.0"
 ImageCore = "0.8.1, 0.9"
 ImageMagick_jll = "= 6.9.10"
 julia = "1.3"
