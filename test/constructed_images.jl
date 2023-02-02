@@ -354,4 +354,16 @@ mutable struct TestType end
         exportimagepixels!(buf2view, wand, cs, channelorder)
         @test buf2view == Ar
     end
+
+    @testset "PDF" begin
+        pdf = ImageMagick.load("images/FLAT_-_What_is_Creative_Commons.pdf")
+        @test size(pdf) == (405, 720, 10)
+
+        fn = joinpath(workdir, "cc.pdf")
+        ImageMagick.save(fn, pdf)
+        @test ImageMagick.load(fn) == pdf
+
+        pdf_100dpi = ImageMagick.load("images/FLAT_-_What_is_Creative_Commons.pdf"; dpi=100)
+        @test size(pdf_100dpi) == (563, 1000, 10)
+    end
 end
