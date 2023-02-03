@@ -72,20 +72,20 @@ function _metadata(wand)
     imtype      = getimagetype(wand)
     havealpha   = getimagealphachannel(wand)
     cs          = getimagecolorspace(wand)
-    if imtype == "GrayscaleType" || imtype == "GrayscaleMatteType"
-        cs = "Gray"
+    if imtype == GrayscaleType || imtype == GrayscaleAlphaType
+        cs = GRAYColorspace
     end
 
     depth = getimagedepth(wand)
     # use an even # of fractional bits for depth>8 (see issue 242#issuecomment-68845157)
     evendepth = ((depth+1)>>1)<<1
     if depth <= 8
-        if cs == "Gray"
-            cdepth = getimagechanneldepth(wand, GrayChannel)
+        if cs == GRAYColorspace
+            cdepth = getimagedepth(wand)
             if n > 1
                 for k = 1:n  # while it might seem that this should be 2:n, that doesn't work...
                     nextimage(wand)
-                    cdepth = max(cdepth, getimagechanneldepth(wand, GrayChannel))
+                    cdepth = max(cdepth, getimagedepth(wand))
                 end
                 resetiterator(wand)
             end
@@ -102,7 +102,7 @@ function _metadata(wand)
 
     channelorder = cs
     if havealpha
-        if channelorder == "sRGB" || channelorder == "RGB"
+        if channelorder == sRGBColorspace || channelorder == RGBColorspace
             T, channelorder = RGBA{T}, "RGBA"
         elseif channelorder == "Gray"
             T, channelorder = GrayA{T}, "IA"
@@ -110,9 +110,9 @@ function _metadata(wand)
             error("Cannot parse colorspace $channelorder")
         end
     else
-        if channelorder == "sRGB" || channelorder == "RGB"
+        if channelorder == sRGBColorspace || channelorder == RGBColorspace
             T, channelorder = RGB{T}, "RGB"
-        elseif channelorder == "Gray"
+        elseif channelorder == GRAYColorspace
             T, channelorder = Gray{T}, "I"
         else
             error("Cannot parse colorspace $channelorder")

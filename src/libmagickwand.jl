@@ -29,16 +29,22 @@ end
 
 # Constants
 # Storage types
-const CHARPIXEL    = 1
-const DOUBLEPIXEL  = 2
-const FLOATPIXEL   = 3
-const INTEGERPIXEL = 4
-const SHORTPIXEL   = 7
-const IMStorageTypes = Union{UInt8,UInt16,UInt32,Float32,Float64}
+@enum StorageType begin
+    UNDEFINEDPIXEL = 0
+    CHARPIXEL      = 1
+    DOUBLEPIXEL    = 2
+    FLOATPIXEL     = 3
+    LONGPIXEL      = 4
+    LONGLONGPIXEL  = 5
+    QUANTUMPIXEL   = 6
+    SHORTPIXEL     = 7
+end
+const IMStorageTypes = Union{Cuchar,Cushort,Culong,Culonglong,Float32,Float64}
 storagetype(::Type{Bool})    = CHARPIXEL
 storagetype(::Type{UInt8})   = CHARPIXEL
 storagetype(::Type{UInt16})  = SHORTPIXEL
-storagetype(::Type{UInt32})  = INTEGERPIXEL
+storagetype(::Type{UInt32})  = LONGPIXEL
+storagetype(::Type{UInt64})  = LONGLONGPIXEL
 storagetype(::Type{Float32}) = FLOATPIXEL
 storagetype(::Type{Float64}) = DOUBLEPIXEL
 storagetype(::Type{T}) where {T<:Normed} = storagetype(FixedPointNumbers.rawtype(T))
@@ -56,29 +62,84 @@ const GreenChannel      = ChannelType(0x00000002)
 const MagentaChannel    = ChannelType(0x00000002)
 const BlueChannel       = ChannelType(0x00000004)
 const YellowChannel     = ChannelType(0x00000004)
-const AlphaChannel      = ChannelType(0x00000008)
-const MatteChannel      = ChannelType(0x00000008)
-const OpacityChannel    = ChannelType(0x00000008)
-const BlackChannel      = ChannelType(0x00000020)
+const BlackChannel      = ChannelType(0x00000008)
+const AlphaChannel      = ChannelType(0x00000010)
+const OpacityChannel    = ChannelType(0x00000010)
 const IndexChannel      = ChannelType(0x00000020)
-const CompositeChannels = ChannelType(0x0000002F)
-const TrueAlphaChannel  = ChannelType(0x00000040)
-const RGBChannels       = ChannelType(0x00000080)
-const GrayChannels      = ChannelType(0x00000080)
-const SyncChannels      = ChannelType(0x00000100)
+const ReadMaskChannel   = ChannelType(0x00000040)
+const WriteMaskChannel  = ChannelType(0x00000080)
+const MetaChannel       = ChannelType(0x00000100)
+const CompositeChannels = ChannelType(0x0000001F)
 const AllChannels       = ChannelType(0x7fffffff)
-const DefaultChannels   = ChannelType((AllChannels.value | SyncChannels.value) & ~OpacityChannel.value)
+# special purpose
+const TrueAlphaChannel  = ChannelType(0x00000100)
+const RGBChannels       = ChannelType(0x00000200)
+const GrayChannels      = ChannelType(0x00000400)
+const SyncChannels      = ChannelType(0x00020000)
+const DefaultChannels   = AllChannels
 
 
 # Image type
-const IMType = ["BilevelType", "GrayscaleType", "GrayscaleMatteType", "PaletteType", "PaletteMatteType", "TrueColorType", "TrueColorMatteType", "ColorSeparationType", "ColorSeparationMatteType", "OptimizeType", "PaletteBilevelMatteType"]
-const IMTypedict = Dict([(IMType[i], i) for i = 1:length(IMType)])
+@enum IMType begin
+    UndefinedType
+    BilevelType
+    GrayscaleType
+    GrayscaleAlphaType
+    PaletteType
+    PaletteAlphaType
+    TrueColorType
+    TrueColorAlphaType
+    ColorSeparationType
+    ColorSeparationAlphaType
+    OptimizeType
+    PaletteBilevelAlphaType
+end
+const IMTypedict = Dict([(t, Int(t)) for t in instances(IMType)])
 
-const CStoIMTypedict = Dict("Gray" => "GrayscaleType", "GrayA" => "GrayscaleMatteType", "AGray" => "GrayscaleMatteType", "RGB" => "TrueColorType", "ARGB" => "TrueColorMatteType", "RGBA" => "TrueColorMatteType", "CMYK" => "ColorSeparationType", "I"=>"GrayscaleType", "IA"=>"GrayscaleMatteType", "AI"=>"GrayscaleMatteType", "BGRA"=>"TrueColorMatteType", "ABGR"=>"TrueColorMatteType")
+const CStoIMTypedict = Dict("Gray" => GrayscaleType, "GrayA" => GrayscaleAlphaType, "AGray" => GrayscaleAlphaType, "RGB" => TrueColorType, "ARGB" => TrueColorAlphaType, "RGBA" => TrueColorAlphaType, "CMYK" => ColorSeparationType, "I"=>GrayscaleType, "IA"=>GrayscaleAlphaType, "AI"=>GrayscaleAlphaType, "BGRA"=>TrueColorAlphaType, "ABGR"=>TrueColorAlphaType)
 
 # Colorspace
-const IMColorspace = ["RGB", "Gray", "Transparent", "OHTA", "Lab", "XYZ", "YCbCr", "YCC", "YIQ", "YPbPr", "YUV", "CMYK", "sRGB"]
-const IMColordict = Dict([(IMColorspace[i], i) for i = 1:length(IMColorspace)])
+#const IMColorspace = ["RGB", "Gray", "Transparent", "OHTA", "Lab", "XYZ", "YCbCr", "YCC", "YIQ", "YPbPr", "YUV", "CMYK", "sRGB"]
+@enum IMColorspace begin
+  UndefinedColorspace
+  RGBColorspace
+  GRAYColorspace
+  TransparentColorspace
+  OHTAColorspace
+  LabColorspace
+  XYZColorspace
+  YCbCrColorspace
+  YCCColorspace
+  YIQColorspace
+  YPbPrColorspace
+  YUVColorspace
+  CMYKColorspace
+  sRGBColorspace
+  HSBColorspace
+  HSLColorspace
+  HWBColorspace
+  Rec601LumaColorspace
+  Rec601YCbCrColorspace
+  Rec709LumaColorspace
+  Rec709YCbCrColorspace
+  LogColorspace
+  CMYColorspace
+  LuvColorspace
+  HCLColorspace
+  LCHColorspace
+  LMSColorspace
+  LCHabColorspace
+  LCHuvColorspace
+  scRGBColorspace
+  HSIColorspace
+  HSVColorspace
+  HCLpColorspace
+  YDbDrColorspace
+  xyYColorspace
+  LinearGRAYColorspace
+end
+const IMColordict = Dict([(chopsuffix(string(t), "Colorspace"), Int(t)) for t in instances(IMColorspace)])
+IMColordict["Gray"] = IMColordict["GRAY"]
 for AC in vcat(subtypes(AlphaColor), subtypes(ColorAlpha))
     Cstr = ColorTypes.colorant_string(color_type(AC))
     if haskey(IMColordict, Cstr)
@@ -355,15 +416,13 @@ function getimagetype(wand::MagickWand)
     t = ccall((:MagickGetImageType, libwand), Cint, (Ptr{Cvoid},), wand)
     # Apparently the following is necessary, because the type is "potential"
     ccall((:MagickSetImageType, libwand), Cvoid, (Ptr{Cvoid}, Cint), wand, t)
-    1 <= t <= length(IMType) || error("Image type ", t, " not recognized")
-    IMType[t]
+    IMType(t)
 end
 
 # get the colorspace
 function getimagecolorspace(wand::MagickWand)
     cs = ccall((:MagickGetImageColorspace, libwand), Cint, (Ptr{Cvoid},), wand)
-    1 <= cs <= length(IMColorspace) || error("Colorspace ", cs, " not recognized")
-    IMColorspace[cs]
+    IMColorspace(cs)
 end
 
 function setimagecolorspace(wand::MagickWand, cs::String)
